@@ -1,6 +1,6 @@
 # CodeStatTool
 
-🚀 **CodeStatTool** is a powerful and visually appealing **code statistics tool** built with **WinForms + C#**. It is designed for **analyzing code lines (KLOC)**, supporting multiple programming languages and file types. The tool allows users to selectively choose which file types to include in the analysis.
+🚀 **CodeStatTool** is a sleek and powerful **code statistics tool** built with **WinForms + C#**. It analyzes code lines (KLOC) across multiple programming languages and file types, allowing users to selectively choose which files to include.
 
 ## 🔥 Features
 
@@ -11,18 +11,6 @@
 ✅ **Distinguish C# and C# Designer Files** - `C# (.cs)` and `C# Designer (.designer.cs)` are counted separately  
 ✅ **Custom Title Bar** - No standard title bar; the window can be dragged using a panel  
 ✅ **Real-time Log Output** - Displays processing progress to avoid UI freezing  
-
----
-
-## 🖥️ User Interface Preview
-
-### 🔹 **Main Window**
-
-![screenshot](https://via.placeholder.com/800x400?text=CodeStatTool+UI+Screenshot)
-
-- **Left Side**: Buttons for folder selection and analysis  
-- **Middle Section**: Log output area showing progress  
-- **Right Side**: **CheckedListBox** for selecting file types to analyze  
 
 ---
 
