@@ -14,10 +14,10 @@ namespace CodeStatTool
     {
         private string selectedFolder = string.Empty;
 
-        // 統計結果字典
+        // 統計結果
         private Dictionary<string, FileStats> statsDict;
 
-        // 自訂標題欄拖動
+        // 自定義標題欄拖動
         private bool isTitleBarDragging = false;
         private Point lastLocation;
 
@@ -26,7 +26,7 @@ namespace CodeStatTool
         private Point resizeStartLocation;
         private int originalHeight;
 
-        // 語言(檔案類型)清單
+        // 設計語言/檔案副檔名清單
         private List<LanguageItem> languageConfig;
 
         public frmMain()
@@ -35,36 +35,45 @@ namespace CodeStatTool
         }
 
         /// <summary>
-        /// 視窗載入時，將可統計的檔案類型/語言加入 CheckedListBox
+        /// 視窗載入：初始設定我們要支援的語言(檔案類型)
         /// </summary>
         private void frmMain_Load(object sender, EventArgs e)
         {
-            // 這裡用新的命名，顯示在 UI 會帶副檔名，例如 "C# (.cs)"
-            // 你可自行微調預設勾選 (DefaultChecked = true / false)
             languageConfig = new List<LanguageItem>()
             {
-                new LanguageItem("C# (.cs)",                true, new[] { ".cs" }),
+                new LanguageItem("C# (.cs)",                true,  new[] { ".cs" }),
                 new LanguageItem("C# Designer (.designer.cs)", true, new[] { ".designer.cs" }),
-                new LanguageItem("C/C++ (.cpp/.h/.hpp)",    true, new[] { ".cpp", ".h", ".hpp" }),
-                new LanguageItem("HTML (.htm/.html)",       true, new[] { ".html", ".htm" }),
-                new LanguageItem("CSS (.css)",              true, new[] { ".css" }),
-                new LanguageItem("JavaScript (.js)",        true, new[] { ".js" }),
-                new LanguageItem("TypeScript (.ts)",        true, new[] { ".ts" }),
-                new LanguageItem("Python (.py)",            true, new[] { ".py" }),
-                new LanguageItem("Java (.java)",            true, new[] { ".java" }),
-                new LanguageItem("PHP (.php)",              true, new[] { ".php" }),
-                new LanguageItem("VB.NET (.vb)",            true, new[] { ".vb" }),
-                new LanguageItem("SQL (.sql)",              true, new[] { ".sql" }),
-                new LanguageItem("XAML (.xaml)",            true, new[] { ".xaml" }),
-                new LanguageItem("XML (.xml)",              false,new[] { ".xml" }), // 預設不勾選
-                new LanguageItem("XSD (.xsd)",              false,new[] { ".xsd" }),
-                new LanguageItem("Text (.txt)",             false,new[] { ".txt" }),
-                new LanguageItem("JSON (.json)",            false,new[] { ".json" }),
-                // 分開顯示Solution和C# Project
-                new LanguageItem("Solution (.sln)",         false,new[] { ".sln" }),
-                new LanguageItem("C# Project (.csproj)",    false,new[] { ".csproj" }),
-                // 其他
-                new LanguageItem("Config (.config)",        false,new[] { ".config" }),
+                new LanguageItem("C/C++ (.cpp/.h/.hpp)",    true,  new[] { ".cpp", ".h", ".hpp" }),
+                new LanguageItem("HTML (.htm/.html)",       true,  new[] { ".html", ".htm" }),
+                new LanguageItem("CSS (.css)",              true,  new[] { ".css" }),
+                new LanguageItem("JavaScript (.js)",        true,  new[] { ".js" }),
+                new LanguageItem("TypeScript (.ts)",        true,  new[] { ".ts" }),
+                new LanguageItem("Python (.py)",            true,  new[] { ".py" }),
+                new LanguageItem("Java (.java)",            true,  new[] { ".java" }),
+                new LanguageItem("PHP (.php)",              true,  new[] { ".php" }),
+                new LanguageItem("VB.NET (.vb)",            true,  new[] { ".vb" }),
+                new LanguageItem("SQL (.sql)",              true,  new[] { ".sql" }),
+                new LanguageItem("XAML (.xaml)",            true,  new[] { ".xaml" }),
+                new LanguageItem("XML (.xml)",              false, new[] { ".xml" }),
+                new LanguageItem("XSD (.xsd)",              false, new[] { ".xsd" }),
+                new LanguageItem("Text (.txt)",             false, new[] { ".txt" }),
+                new LanguageItem("JSON (.json)",            false, new[] { ".json" }),
+                new LanguageItem("Solution (.sln)",         false, new[] { ".sln" }),
+                new LanguageItem("C# Project (.csproj)",    false, new[] { ".csproj" }),
+                new LanguageItem("Config (.config)",        false, new[] { ".config" }),
+
+                // ASP Classic
+                new LanguageItem("ASP Classic (.asp)",      false, new[] { ".asp" }),
+                // ASP.NET Web Forms
+                new LanguageItem("ASP.NET Web Forms (.aspx)", false, new[] { ".aspx" }),
+                // ASP.NET Razor (MVC / Razor Pages)
+                new LanguageItem("Razor C# (.cshtml)",      false, new[] { ".cshtml" }),
+                new LanguageItem("Razor VB (.vbhtml)",      false, new[] { ".vbhtml" }),
+                // Blazor Components
+                new LanguageItem("Blazor (.razor)",         false, new[] { ".razor" }),
+
+                // JSP
+                new LanguageItem("JSP (.jsp)",              false, new[] { ".jsp" }),
             };
 
             // 加入 CheckedListBox
@@ -183,7 +192,7 @@ namespace CodeStatTool
 
             backgroundWorker1.ReportProgress(0, $"Found {allFiles.Length} files in total.\r\n");
 
-            // 收集使用者勾選的語言顯示名
+            // 取得使用者勾選的語言清單 (UI CheckBox)
             List<string> checkedLangs = new List<string>();
             this.Invoke((MethodInvoker)delegate
             {
@@ -201,14 +210,13 @@ namespace CodeStatTool
                     $"Processing file {i + 1}/{allFiles.Length}: {Path.GetFileName(file)}\r\n"
                 );
 
-                // 判斷檔案屬於哪個語言(檔案類型)
+                // 檔案對應哪種語言/類型
                 string language = DetermineLanguage(file);
                 if (language == null)
                     continue; // 不在支援清單 => skip
 
-                // 檢查是否在使用者勾選清單
                 if (!checkedLangs.Contains(language))
-                    continue;
+                    continue; // 未勾選 => skip
 
                 if (!statsDict.ContainsKey(language))
                 {
@@ -217,6 +225,7 @@ namespace CodeStatTool
 
                 statsDict[language].FileCount++;
 
+                // 計算行數
                 CountLines(file, language, out int blank, out int comment, out int code);
                 statsDict[language].BlankLines += blank;
                 statsDict[language].CommentLines += comment;
@@ -242,30 +251,28 @@ namespace CodeStatTool
                 return;
             }
 
-            // 輸出對齊表格
+            // 輸出表格
             string result = GenerateOutputText(statsDict);
             txtOutput.AppendText(result);
         }
         #endregion
 
         /// <summary>
-        /// 將檔案副檔名對應到我們 languageConfig 中的顯示名稱
+        /// 從檔案路徑判斷對應語言 (找不到就 return null)
         /// </summary>
         private string DetermineLanguage(string filePath)
         {
             string ext = Path.GetExtension(filePath).ToLower();
             string fileName = Path.GetFileName(filePath).ToLower();
 
-            // 若帶有 .designer.cs 結尾 => 視為 "C# Designer (.designer.cs)"
+            // 特別判斷 C# Designer
             if (fileName.EndsWith(".designer.cs"))
             {
-                var designerItem = languageConfig
-                    .FirstOrDefault(x => x.LanguageName.Equals("C# Designer (.designer.cs)"));
-                if (designerItem != null)
-                    return designerItem.LanguageName;
+                var item = languageConfig.FirstOrDefault(x => x.LanguageName == "C# Designer (.designer.cs)");
+                if (item != null) return item.LanguageName;
             }
 
-            // 一般情況：判斷 ext 是否出現在 languageConfig 的 Extensions 裡
+            // 一般情況
             foreach (var lang in languageConfig)
             {
                 if (lang.Extensions.Contains(ext))
@@ -273,12 +280,11 @@ namespace CodeStatTool
                     return lang.LanguageName;
                 }
             }
-
-            return null; // 不支援此檔案
+            return null;
         }
 
         /// <summary>
-        /// 依語言(檔案類型)簡易判斷空行、註釋行、程式碼行
+        /// 簡易判斷空行、註釋行、程式碼行
         /// </summary>
         private void CountLines(string filePath, string language,
             out int blankLines, out int commentLines, out int codeLines)
@@ -299,16 +305,17 @@ namespace CodeStatTool
                     continue;
                 }
 
-                // 針對有 // 或 /*...*/ 的語言 
-                if (language.StartsWith("C#") ||
-                    language.StartsWith("C/C++") ||
-                    language.StartsWith("Java (") ||  // "Java (.java)"
+                // 針對 C系 或類似語言 (/* ... */, //)
+                if (language.StartsWith("C# (") ||
+                    language.StartsWith("C# Designer") ||
+                    language.StartsWith("C/C++ (") ||
+                    language.StartsWith("Java (") ||
                     language.StartsWith("JavaScript (") ||
                     language.StartsWith("TypeScript (") ||
                     language.StartsWith("PHP (") ||
                     language.StartsWith("VB.NET ("))
                 {
-                    // 簡化C系註釋
+                    // 用 //, /*...*/ 判斷
                     if (inBlockComment)
                     {
                         commentLines++;
@@ -338,13 +345,17 @@ namespace CodeStatTool
                         }
                     }
                 }
-                else if (language.StartsWith("HTML (")
-                      || language.StartsWith("XML (")
-                      || language.StartsWith("XAML (")
-                      || language.StartsWith("XSD (")
-                      || language.StartsWith("SQL ("))
+                // 針對以 HTML/XML 為基礎 (<!-- ... -->)
+                else if (language.StartsWith("HTML (") ||
+                         language.StartsWith("XML (") ||
+                         language.StartsWith("XSD (") ||
+                         language.StartsWith("XAML (") ||
+                         language.StartsWith("SQL (") ||
+                         language.StartsWith("JSP (") ||
+                         language.Contains("ASP.NET") ||   // .aspx, .cshtml, .vbhtml, .razor (示例用HTML註釋)
+                                                           // 也可以特別為 .cshtml 加入 @*...*@ 等判斷
+                         false)
                 {
-                    // 簡易判斷 <!-- ... -->
                     if (inBlockComment)
                     {
                         commentLines++;
@@ -370,23 +381,23 @@ namespace CodeStatTool
                         }
                     }
                 }
+                // 其餘 (Text, JSON, .sln, .csproj, .config, ASP Classic, etc.) => 全部非空行算 Code
                 else
                 {
-                    // 例如 .txt, .json, .sln, .csproj, .config 等 -> 無註釋，全部非空行當 code
                     codeLines++;
                 }
             }
         }
 
         /// <summary>
-        /// 輸出對齊的表格 (Language, Files, Blank, Comment, Code)
+        /// 輸出對齊表格
         /// </summary>
         private string GenerateOutputText(Dictionary<string, FileStats> stats)
         {
+            // 語言欄位設30寬，後面列對齊
             string headerFormat = "{0,-30} {1,6} {2,8} {3,8} {4,8}";
-            // 語言列寬擴大一點(30) 以免顯示不全
-
             var sb = new StringBuilder();
+
             sb.AppendLine(string.Format(headerFormat, "Language (Ext)", "Files", "Blank", "Comment", "Code"));
             sb.AppendLine("-------------------------------------------------------------------");
 
@@ -404,34 +415,30 @@ namespace CodeStatTool
                 totalComment += fs.CommentLines;
                 totalCode += fs.CodeLines;
 
-                sb.AppendLine(
-                    string.Format(headerFormat,
-                        key,
-                        fs.FileCount,
-                        fs.BlankLines,
-                        fs.CommentLines,
-                        fs.CodeLines
-                    )
-                );
+                sb.AppendLine(string.Format(headerFormat,
+                    key,
+                    fs.FileCount,
+                    fs.BlankLines,
+                    fs.CommentLines,
+                    fs.CodeLines
+                ));
             }
 
             sb.AppendLine("-------------------------------------------------------------------");
-            sb.AppendLine(
-                string.Format(headerFormat,
-                    "SUM:",
-                    totalFiles,
-                    totalBlank,
-                    totalComment,
-                    totalCode
-                )
-            );
+            sb.AppendLine(string.Format(headerFormat,
+                "SUM:",
+                totalFiles,
+                totalBlank,
+                totalComment,
+                totalCode
+            ));
 
             return sb.ToString();
         }
     }
 
     /// <summary>
-    /// 儲存每種語言(檔案類型)的行數統計
+    /// 單一語言(或檔案類型)統計資料
     /// </summary>
     public class FileStats
     {
@@ -442,7 +449,7 @@ namespace CodeStatTool
     }
 
     /// <summary>
-    /// 用於配置語言顯示名稱、預設勾選狀態、對應副檔名
+    /// 語言(檔案類型)設定
     /// </summary>
     public class LanguageItem
     {

@@ -4,12 +4,10 @@
     {
         private System.ComponentModel.IContainer components = null;
 
-        // 自定義標題欄 Panel
         private System.Windows.Forms.Panel panelTitleBar;
         private System.Windows.Forms.Label lblTitle;
         private System.Windows.Forms.Button btnClose;
 
-        // 允許垂直拉伸的 Panel
         private System.Windows.Forms.Panel panelResize;
 
         private System.Windows.Forms.Button btnSelectFolder;
@@ -18,7 +16,6 @@
         private System.Windows.Forms.TextBox txtOutput;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
 
-        // CheckedListBox，列出可統計的各語言或檔案類型
         private System.Windows.Forms.CheckedListBox clbLanguages;
 
         protected override void Dispose(bool disposing)
@@ -187,7 +184,6 @@
             this.clbLanguages.Name = "clbLanguages";
             this.clbLanguages.Size = new System.Drawing.Size(180, 368);
             this.clbLanguages.TabIndex = 6;
-            // (程式執行時以程式碼方式加入語言項)
 
             // 
             // frmMain
